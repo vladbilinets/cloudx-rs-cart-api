@@ -1,14 +1,14 @@
 import {
-    BadRequestException,
-    Body,
-    Controller,
-    Delete,
-    Get,
-    HttpStatus,
-    Post,
-    Put,
-    Req,
-    UnauthorizedException
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Post,
+  Put,
+  Req,
+  UnauthorizedException
 } from '@nestjs/common';
 
 // import { BasicAuthGuard, JwtAuthGuard } from '../auth';
@@ -31,13 +31,17 @@ export class CartController {
   // @UseGuards(BasicAuthGuard)
   @Get()
   async findUserCart(@Req() req: AppRequest) {
-    const userId = await this.getUserIdFromRequest(req);
-    const cart = await this.cartService.findOrCreateByUserId(userId);
+    try {
+      const userId = await this.getUserIdFromRequest(req);
+      const cart = await this.cartService.findOrCreateByUserId(userId);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: { cart }
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OK',
+        data: { cart }
+      }
+    } catch (err) {
+      throw new BadRequestException(`Unable to find user cart (${err.message})`)
     }
   }
 
@@ -45,13 +49,17 @@ export class CartController {
   // @UseGuards(BasicAuthGuard)
   @Put()
   async updateUserCart(@Req() req: AppRequest, @Body() body) { // TODO: validate body payload...
-    const userId = await this.getUserIdFromRequest(req);
-    const cart = this.cartService.updateByUserId(userId, body)
+    try {
+      const userId = await this.getUserIdFromRequest(req);
+      const cart = await this.cartService.updateByUserId(userId, body)
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: { cart }
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OK',
+        data: { cart }
+      }
+    } catch(err) {
+      throw new BadRequestException(`Unable to update user cart (${err.message})`)
     }
   }
 
@@ -59,12 +67,16 @@ export class CartController {
   // @UseGuards(BasicAuthGuard)
   @Delete()
   async clearUserCart(@Req() req: AppRequest) {
-    const userId = await this.getUserIdFromRequest(req);
-    await this.cartService.removeByUserId(userId);
+    try {
+      const userId = await this.getUserIdFromRequest(req);
+      await this.cartService.removeByUserId(userId);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK'
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OK'
+      }
+    } catch (err) {
+      throw new BadRequestException(`Unable to clear user cart (${err.message})`)
     }
   }
 
@@ -72,32 +84,36 @@ export class CartController {
   // @UseGuards(BasicAuthGuard)
   @Post('checkout')
   async checkout(@Req() req: AppRequest, @Body() body) {
-    const userId = await this.getUserIdFromRequest(req);
-    const cart = await this.cartService.findByUserId(userId);
+    try {
+      const userId = await this.getUserIdFromRequest(req);
+      const cart = await this.cartService.findByUserId(userId);
 
-    if (!(cart && cart.items.length)) {
-      throw new BadRequestException();
-    }
+      if (!cart) {
+        throw new BadRequestException('Cart is not found');
+      }
 
-    const order = await this.orderService.create({
-      ...body,
-      user_id: userId,
-      cart_id: cart.id,
-      status: OrderStatusEnum.ordered
-    });
-    await this.cartService.removeByUserId(userId);
+      const order = await this.orderService.create({
+        ...body,
+        user_id: userId,
+        cart_id: cart.id,
+        status: OrderStatusEnum.ordered
+      });
+      await this.cartService.removeByUserId(userId);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'OK',
-      data: { order }
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'CREATED',
+        data: { order }
+      }
+    } catch (err) {
+      throw new BadRequestException(`Unable to create checkout (${err.message})`)
     }
   }
 
   private async getUserIdFromRequest(req: AppRequest): Promise<string> {
     const userId = getUserIdFromRequest(req);
 
-    if (!userId) throw new BadRequestException();
+    if (!userId) throw new BadRequestException('"userId" is missing in request');
     if (!await this.userService.findOne(userId)) throw new UnauthorizedException();
 
     return userId;

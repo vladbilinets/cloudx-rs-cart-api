@@ -12,12 +12,12 @@ export class CartService {
   ) {}
 
   async findByUserId(userId: string): Promise<Cart | null> {
-    return this.repository.findOne({ user_id: userId });
+    return this.repository.findOne({ user: { id: userId } });
   }
 
   async createByUserId(userId: string): Promise<Cart> {
     await this.repository.insert({
-        user_id: userId,
+        user: { id: userId },
         created_at: new Date(),
         updated_at: new Date(),
         status: CartStatusEnum.open
@@ -30,12 +30,12 @@ export class CartService {
   }
 
   async updateByUserId(userId: string, updateUser: Partial<Cart>): Promise<Cart> {
-    await this.repository.update({ user_id: userId }, updateUser);
-    return this.repository.findOne({ user_id: userId });
+    await this.repository.update({ user: { id: userId } }, updateUser);
+    return this.repository.findOne({ user: { id: userId } });
   }
 
   async removeByUserId(userId): Promise<void> {
-    await this.repository.delete({ user_id: userId });
+    await this.repository.delete({ user: { id: userId } });
   }
 
 }

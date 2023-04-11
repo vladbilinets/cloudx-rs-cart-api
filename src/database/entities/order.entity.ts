@@ -12,13 +12,11 @@ export class Order {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @ManyToOne(() => User)
-    @Column({ type: 'uuid' })
-    user_id: string;
+    @ManyToOne(() => User, { onDelete: 'CASCADE' })
+    user: User;
 
-    @ManyToOne(() => Cart)
-    @Column({ type: 'uuid' })
-    cart_id: string;
+    @ManyToOne(() => Cart, { onDelete: 'CASCADE' })
+    cart: Cart;
 
     @Column({ type: 'json' })
     payment: string;

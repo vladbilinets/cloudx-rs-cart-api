@@ -12,10 +12,6 @@ export class Cart {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @OneToOne(() => User)
-    @Column({ type: 'uuid', nullable: false })
-    user_id: string;
-
     @Column({ type: 'date', nullable: false })
     created_at: Date;
 
@@ -29,6 +25,10 @@ export class Cart {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { eager: true })
+    @OneToMany(
+        () => CartItem,
+        (cartItem) => cartItem.cart,
+        { eager: true, onDelete: 'CASCADE' }
+    )
     items: CartItem[];
 }
