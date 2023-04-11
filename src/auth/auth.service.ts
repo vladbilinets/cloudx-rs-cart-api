@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/services/users.service';
-import { User } from '../users/models';
-import { contentSecurityPolicy } from 'helmet';
+import { User } from '../database/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -14,11 +13,11 @@ export class AuthService {
   validateUser(name: string, password: string): any {
     const user = this.usersService.findOne(name);
 
-    if (user) {
-      return user;
+    if (!user) {
+        throw new UnauthorizedException();
     }
 
-    return this.usersService.createOne({ name, password })
+    return user;
   }
 
   login(user: User, type) {

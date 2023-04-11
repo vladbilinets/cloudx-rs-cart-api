@@ -1,0 +1,25 @@
+service: cloudx-rs-cart-api
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  deploymentMethod: direct
+  region: eu-central-1
+
+functions:
+  main:
+    handler: dist/main.handler
+    timeout: 30
+    events:
+      - http:
+          method: ANY
+          path: /
+      - http:
+          method: ANY
+          path: '{proxy+}'
